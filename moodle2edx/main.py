@@ -473,7 +473,7 @@ class Moodle2Edx(object):
             title = book_inst.find('title').text
             vert = etree.SubElement(seq, 'vertical')
             self.set_vertical_name(vert, title)
-            htmlstr = book_inst.find('.//content').text
+            htmlstr = book_inst.find('.//content').text or u''
             url_name = 'book_{}'.format(book_inst.get('id'))
             self.save_as_html(url_name, title, htmlstr, vert=vert)
 

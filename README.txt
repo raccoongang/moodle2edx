@@ -25,7 +25,7 @@ lxml, html2text
 Installation
 ============
 
-    pip install -e git+https://github.com/mitocw/moodle2edx.git@sendr_uwt#egg=moodle2edx
+    pip install -e git+https://github.com/raccoongang/moodle2edx.git@sendr_uwt#egg=moodle2edx
 
 Usage
 =====
