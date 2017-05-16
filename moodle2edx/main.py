@@ -394,19 +394,22 @@ class Moodle2Edx(object):
         # TODO: import intro, do points
         for qinst in qxml.findall('.//question_instance'):
             qnum = qinst.find('question')
-            qnum = qnum.text
-            question = qdict[qnum]
-            vert = etree.SubElement(seq, 'vertical')  # one problem in each vertical
-            problem = etree.SubElement(vert, 'problem')
-            # problem.set('rerandomize',"never")
-            # problem.set('showanswer','attempted')
-            qname = question.find('name').text
-            # problem.set('name',qname)
-            qfn = question.get('filename')
-            url_name = self.make_url_name(qfn.replace('.xml', ''))
-            problem.set('url_name', url_name)
-            print "    --> question: %s (%s)" % (qname, url_name)
-            self.export_question(question, qname, url_name)
+            if qnum:
+                qnum = qnum.text
+                question = qdict[qnum]
+                vert = etree.SubElement(seq, 'vertical')  # one problem in each vertical
+                problem = etree.SubElement(vert, 'problem')
+                # problem.set('rerandomize',"never")
+                # problem.set('showanswer','attempted')
+                qname = question.find('name').text
+                # problem.set('name',qname)
+                qfn = question.get('filename')
+                url_name = self.make_url_name(qfn.replace('.xml', ''))
+                problem.set('url_name', url_name)
+                print "    --> question: %s (%s)" % (qname, url_name)
+                self.export_question(question, qname, url_name)
+            else:
+                print "    --> question: %s (%s)\n There is no qnum!" % (qname, url_name)
 
     # -----------------------------------------------------------------------------
     # write out question as an xml file
