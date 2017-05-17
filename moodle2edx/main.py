@@ -12,7 +12,6 @@ import codecs
 import tempfile
 from StringIO import StringIO
 from lxml import etree
-from lxml.html.clean import Cleaner
 from abox import AnswerBox
 from path import path
 # import xml.sax.saxutils as saxutils
@@ -374,7 +373,7 @@ class Moodle2Edx(object):
 
         htmlstr = re.sub(' href="\$@PAGEVIEWBYID\*([^"]+)@\$"', fix_relative_link, htmlstr)
 
-        htmlstr = ('<html display_name="%s">\n' % cgi.escape(name)) + htmlstr + '\n</html>'
+        htmlstr = (u'<html display_name="%s">\n' % cgi.escape(name)) + htmlstr + u'\n</html>'
 
         if self.clean_up_html:
             parser = etree.HTMLParser()
@@ -408,8 +407,6 @@ class Moodle2Edx(object):
                 problem.set('url_name', url_name)
                 print "    --> question: %s (%s)" % (qname, url_name)
                 self.export_question(question, qname, url_name)
-            else:
-                print "    --> question: %s (%s)\n There is no qnum!" % (qname, url_name)
 
     # -----------------------------------------------------------------------------
     # write out question as an xml file
@@ -473,14 +470,13 @@ class Moodle2Edx(object):
     def import_book(self, adir, seq, title):
         print '%s/%s/book.xml' % (self.moodle_dir, adir)
         qxml = etree.parse('%s/%s/book.xml' % (self.moodle_dir, adir)).getroot()
-        cleaner = Cleaner(style=True)
         for book_inst in qxml.findall('.//chapter'):
             title = book_inst.find('title').text
             vert = etree.SubElement(seq, 'vertical')
             self.set_vertical_name(vert, title)
-            htmlstr = ''
+            htmlstr = u''
             if book_inst.find('.//content').text:
-                htmlstr = cleaner.clean_html(book_inst.find('.//content').text)
+                htmlstr = re.sub(' style=".([^"]+)"', '', book_inst.find('.//content').text)
             url_name = 'book_{}'.format(book_inst.get('id'))
             self.save_as_html(url_name, title, htmlstr, vert=vert)
 
