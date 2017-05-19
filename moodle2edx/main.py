@@ -254,7 +254,7 @@ class Moodle2Edx(object):
     def new_sequential(self, sectionid, chapter, activity_title=""):
         sdir = 'sections/section_%s' % sectionid
         xml = etree.parse('%s/%s/section.xml' % (self.moodle_dir, sdir)).getroot()
-        name = xml.find('name').text
+        name = xml.find('name').text or ''
         print "--> Section: %s" % name
         chapter.set('display_name', name)
         seq = etree.SubElement(chapter, 'sequential')
