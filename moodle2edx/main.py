@@ -188,7 +188,6 @@ class Moodle2Edx(object):
 
         Return current sequential, vertical
         '''
-
         adir = activity.find('directory').text
         title = activity.find('title').text.strip()
         category = activity.find('modulename').text
@@ -391,12 +390,12 @@ class Moodle2Edx(object):
         name = qxml.find('.//name').text
         seq.set('name', name)
         # TODO: import intro, do points
+        vert = etree.SubElement(seq, 'vertical')  # one problem in each vertical
         for qinst in qxml.findall('.//question_instance'):
-            qnum = qinst.find('question')
-            if qnum:
-                qnum = qnum.text
+            qnum = qinst.find('questionid')
+            if qnum is not None:
+                qnum = qinst.find('questionid').text
                 question = qdict[qnum]
-                vert = etree.SubElement(seq, 'vertical')  # one problem in each vertical
                 problem = etree.SubElement(vert, 'problem')
                 # problem.set('rerandomize',"never")
                 # problem.set('showanswer','attempted')
@@ -423,18 +422,17 @@ class Moodle2Edx(object):
         problem = etree.Element('problem')
         problem.set('display_name', name)
         text = etree.SubElement(problem, 'text')
-        qtext = question.find('questiontext').text or ''
+        qtext = question.find('questiontext').text
         try:
             qtext = self.fix_math(qtext)
         except Exception as err:
             print "Failed to fix math for %s" % qtext
             print "question = ", etree.tostring(question)
             raise
-        qtext = '<html>%s</html>' % qtext
+        qtext = '<html>%s</html>' % qtext.replace('<br>', '').replace('&nbsp;', ' ')
         # qtext = saxutils.unescape(qtext)
         text.append(etree.XML(qtext))
         qtype = question.find('.//qtype').text
-
         if qtype == 'truefalse':
             options = []
             expect = ""
@@ -459,6 +457,21 @@ class Moodle2Edx(object):
                     expect = str(op.encode('utf-8'))
             optionstr = ','.join(['"%s"' % x.replace('"', "'") for x in options])
             abox = AnswerBox("type='multichoice' expect='%s' options=%s" % (expect, optionstr.encode('utf-8')))
+            problem.append(abox.xml)
+
+        elif qtype == 'shortanswer':
+            options = []
+            expect = []
+            for answer in question.findall('.//answer'):
+                op = answer.find('answertext').text
+                op = op.replace(u'\xa0', ' ')
+                op = op.replace(u'\'', ' ')
+                options.append(op)
+                if float(answer.find('fraction').text) == 1.0:
+                    expect.append(str(op.encode('utf-8')))
+            optionstr = ','.join(['"%s"' % x.replace('"', "'") for x in options])
+            abox = AnswerBox("type='shortanswer' expect='%s' options=%s" % (','.join(expect),
+                                                                            optionstr.encode('utf-8')))
             problem.append(abox.xml)
 
         pfn = url_name

@@ -167,7 +167,7 @@ class AnswerBox(object):
                 choice = etree.SubElement(cg,'choice')
                 choice.set('correct','true' if op==expect else 'false')
                 choice.set('name',str(cnt))
-                choice.append(etree.XML("<text> %s</text>" %op))
+                choice.append(etree.XML("<text> %s</text>" % op.replace('<br>', '')))
                 cnt += 1
             
         if abtype=='choiceresponse':
@@ -184,9 +184,9 @@ class AnswerBox(object):
                 choice.append(etree.XML("<text>%s</text>" %op))
                 cnt += 1
 
-        elif abtype=='shortanswerresponse':
+        elif abtype == 'shortanswerresponse':
             print "[latex2html.abox] Warning - short answer response quite yet implemented in edX!"
-            if 1:
+            if 0:   # this was an integer 1 - ???????, I need else section
                 tb = etree.Element('textbox')
                 self.copy_attrib(abargs,'rows',tb)
                 self.copy_attrib(abargs,'cols',tb)
@@ -201,7 +201,14 @@ class AnswerBox(object):
                 tl = etree.Element('textline')
                 tl.set('size','80')
                 abxml.append(tl)
-                abxml.set('answer','unknown')
+                self.require_args(['expect'])
+                answers = abargs['expect'].split(',')
+                stringresponse_answer, addition_answers = answers[0], answers[1:]
+                abxml.set('answer', stringresponse_answer)
+                for answer in addition_answers:
+                    ad_answer = etree.Element('additional_answer')
+                    ad_answer.set('answer', answer)
+                    abxml.append(ad_answer)
                 self.copy_attrib(abargs,'inline',tl)
                 self.copy_attrib(abargs,'inline',abxml)
             
@@ -377,7 +384,7 @@ class AnswerBox(object):
         '''
         Parse arguments of abox.  Splits by space delimitation.
         '''
-        s = s.replace(u'\u2019',"'")
+        s = s.replace(u'\u2019', "'")
         try:
             s = str(s)
         except Exception, err:
